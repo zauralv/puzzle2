@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        #puzzle {
+            width: 800px;
+            height: 600px;
+            box-shadow: 0 0 10px black;
+            position: relative;
+        }
+
+        #puzzle>div {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            box-shadow: 0 0 5px #333;
+        }
+
+
+        button {
+            appearance: button;
+            margin: 20px 100px;
+            background-color: #1899D6;
+            border: solid transparent;
+            border-radius: 16px;
+            border-width: 0 0 4px;
+            box-sizing: border-box;
+            color: #FFFFFF;
+            cursor: pointer;
+            display: inline-block;
+            font-family: din-round, sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: .8px;
+            line-height: 20px;
+
+            outline: none;
+            overflow: visible;
+            padding: 13px 16px;
+            text-align: center;
+            text-transform: uppercase;
+            touch-action: manipulation;
+            transform: translateZ(0);
+            transition: filter .2s;
+            user-select: none;
+            -webkit-user-select: none;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        button:after {
+            background-clip: padding-box;
+            background-color: #1CB0F6;
+            border: solid transparent;
+            border-radius: 16px;
+            border-width: 0 0 4px;
+            bottom: -4px;
+            content: "";
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            z-index: -1;
+        }
+
+        button:main,
+        button:focus {
+            user-select: auto;
+        }
+
+        button:hover:not(:disabled) {
+            filter: brightness(1.1);
+            -webkit-filter: brightness(1.1);
+        }
+
+        button:disabled {
+            cursor: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="puzzle"></div>
+    <button id="show">show</button>
+    <button id="help">help</button>
+    <button id="win">win</button>
+    <span id="count"></span>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"
+        integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script>
+        $(() => {
+            let finalScore = 12
+            var check = true
+            // var top = 3
+            // var left = 4
+            // var px = 200
+            var count = 3
+            const next = $('#next')
+            const replay = $('#replay')
+            const countS = $('#count')
+            const puzzle = $("#puzzle")
+            const btn = $('#show')
+            const help = $('#help')
+            const winn = $('#win')
+
+            countS.text(count)
+
+            puzzle.append('<div id="bg"></div>')
+
+
+            $('#bg').css({
+                backgroundImage: 'url("img/puzzle.jpg")',
+                width: '100%',
+                height: '100%',
+                opacity: 0
+            })
+
+            btn.click(function () {
+                if (btn.text() == 'show') {
+                    btn.text('hide')
+                    $('#bg').siblings().animate({ 'opacity': "0" }, 400)
+                    $('#bg').animate({ 'opacity': "0.5" }, 400)
+                }
+                else {
+                    btn.text('show')
+                    puzzle.children().show()
+                    $('#bg').animate({ 'opacity': "0" }, 400)
+                    $('#bg').siblings().animate({ 'opacity': "1" }, 400)
+                }
+            })
+
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 4; col++) {
+                    puzzle.append(`<div id = ${row}${col}></div>`)
+                    puzzle.children().last().css({
+                        top: rand(0, 300) + 'px',
+                        left: rand(400, $(window).width() - 100) + 'px',
+                        transform: `rotate(${rand(-45, 45)}deg)`,
+                        background: `url(img/puzzle.jpg) ${-200 * col}px ${-200 * row}px`
+                    })
+                }
+            }
+            $('body').on('click', '#replay', function () {
+                location.reload()
+            })
+
+            $('body').on('click', '#next', function () {
+                // top *= 2
+                // left *= 2
+                // px /= 2
+                check = false
+                finalScore = 48
+                $('#bg').siblings().remove()
+                for (let row = 0; row < 6; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        puzzle.append(`<div id = ${row}${col}></div>`)
+                        puzzle.children().last().css({
+                            top: rand(0, 600) + 'px',
+                            left: rand(800, $(window).width() - 100) + 'px',
+                            transform: `rotate(${rand(-45, 45)}deg)`,
+                            background: `url(img/puzzle.jpg) ${-100 * col}px ${-100 * row}px`
+                        })
+                    }
+                }
+                $('#bg').siblings().css({
+                    width: '100px',
+                    height: '100px'
+                })
+
+                dragg(100, 100)
+                count = 5
+                countS.text(count)
+            })
+
+            winn.click(function () {
+                if (check)
+                    px = 200
+                else
+                    px = 100
+                $('#bg').siblings().each(function (i, el) {
+                    let id = parseInt($(el).attr('id'));
+                    let topp = Math.floor((id / 10)) * px
+                    let leftt = (id % 10) * px
+                    // console.log(el);
+                    // console.log(topp);
+                    // console.log(leftt);
+                    // console.log();
+                    $(el).css({
+                        top: `${topp}px`,
+                        left: `${leftt}px`,
+                        transform: 'rotate(0deg)',
+                        boxShadow: 'none'
+                    })
+
+                })
+                win(puzzle)
+            })
+
+            help.click(function () {
+
+                if (check)
+                    helpClick()
+                else
+                    helpClick(6, 8, 100)
+            }
+            )
+            function helpClick(top = 3, left = 4, px = 200) {
+                // win(puzzle)
+                let tempC = parseInt(countS.text())
+                if (tempC > 0) {
+                    while (true) {
+                        let randTop = rand(0, top)
+                        let randLeft = rand(0, left)
+                        // console.log(randTop);
+                        // console.log(randLeft);
+                        let id = `${randTop}${randLeft}`
+                        let el = $(`#${id}`)
+                        // console.log(el.attr('id'));
+
+                        if (!el.hasClass('placed')) {
+                            el.css({
+                                transform: 'rotate(0deg)',
+                                boxShadow: 'none'
+                            })
+                            el.animate({
+                                top: `${randTop * px}px`,
+                                left: `${randLeft * px}px`,
+
+                            })
+                            // console.log('saalm');
+                            el.addClass("placed");
+                            let score = 0
+
+                            $('#bg').siblings().each(function (i, el) {
+                                if (checkWin($(el), px)) {
+                                    $(el).addClass('placed')
+                                    score++
+                                }
+                            })
+
+                            console.log(score);
+                            if (score == finalScore - 1) {
+                                console.log('ssal');
+                                win(puzzle)
+                            }
+
+                            break;
+                        }
+
+                    }
+                    tempC--
+                    countS.html(tempC)
+
+
+                }
+            }
+
+            function dragg(dragpx = 200, px = 200) {
+
+
+                $('#bg').siblings().draggable({
+                    snap: $('#bg').siblings(),
+                    start: function () {
+                        $(this).css({ transform: 'rotate(0deg)', zIndex: 100 })
+                    },
+                    drag: function () {
+
+                    },
+                    stop: function () {
+                        $(this).css({
+                            top: `${dragpx * Math.round($(this).position().top / dragpx)}px`,
+                            left: `${dragpx * Math.round($(this).position().left / dragpx)}px`,
+                            boxShadow: 'none'
+
+                        })
+                        let score = 0
+
+                        $('#bg').siblings().each(function (i, el) {
+                            if (checkWin($(el), px)) {
+                                $(el).addClass('placed')
+                                score++
+                            }
+                        })
+
+
+                        if (score == finalScore) {
+                            win(puzzle)
+                        }
+                        else {
+                            console.log('not yet');
+                            console.log(score)
+                        }
+                    }
+
+                })
+            }
+
+            dragg()
+
+
+
+
+
+        function rand(min, max) {
+            return Math.floor(Math.random() * (max - min)) + min;
+        }
+
+        function checkWin(obj, px = 200) {
+            let id = parseInt(obj.attr('id'));
+            let top = Math.floor((id / 10)) * px
+            let left = (id % 10) * px
+            return (top == Math.round(obj.position().top) && left == obj.position().left);
+        }
+
+        function win(obj) {
+            obj.append('<div id="end"><p>You Won!</p><div id="imgs"><img id="replay" src="img/replay.png"/></div></div>')
+            if (check)
+                $('#imgs').append('<img id="next" src="img/right.png"/>')
+            $('#imgs').css({
+                display: 'flex',
+                flexDirection: 'row'
+            })
+            $('#end  img').css({
+                backgroundColor: 'white',
+                height: '50px',
+                borderRadius: '50%',
+                margin: '0 20px',
+                cursor: 'pointer'
+            })
+            $('#end').css({
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: 'none',
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'black',
+                opacity: 0,
+                color: 'white',
+                fontFamily: "\'Roboto\'",
+                fontSize: '50px',
+                zIndex: 200
+                
+            })
+            $('#end').animate({ opacity: 0.8 }, 400)
+        }
+    })
+
+    </script>
+</body>
+
+</html>
